@@ -615,8 +615,6 @@ export class CourtsService implements OnModuleInit {
         if (!exists) {
           await this.courtModel.create(courtObj);
           console.log(`Seeded court: ${courtObj.name}`);
-        } else {
-          await this.courtModel.updateOne({ slug: courtObj.slug }, courtObj).exec();
         }
       }
     }
