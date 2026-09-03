@@ -12,6 +12,8 @@ async function bootstrap() {
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ limit: '50mb', extended: true }));
 
+  const port = process.env.PORT || 5001;
+
   // Configure CORS explicitly for allowed origins including advocateonrecordtushargarg.com
   const allowedOrigins = [
     'https://advocateonrecordtushargarg.com',
@@ -20,7 +22,9 @@ async function bootstrap() {
     'http://www.advocateonrecordtushargarg.com',
     'http://localhost:3000',
     'http://localhost:5000',
+    'http://localhost:5001',
     'http://localhost:3001',
+    `http://localhost:${port}`,
     process.env.FRONTEND_URL,
   ].filter(Boolean);
 
@@ -49,7 +53,7 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type, Accept, Authorization, X-Requested-With, Origin, Access-Control-Allow-Origin, Access-Control-Allow-Headers',
   });
 
-  await app.listen(5000, '0.0.0.0');
-  console.log(`Backend running on http://localhost:5000`);
+  await app.listen(port, '0.0.0.0');
+  console.log(`Backend running on port ${port}`);
 }
 bootstrap();
