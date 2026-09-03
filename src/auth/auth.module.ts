@@ -16,7 +16,7 @@ import { Admin, AdminSchema } from '../admin/schemas/admin.schema';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET') || 'lokeshkumar',
-        signOptions: { expiresIn: (configService.get<string>('ACCESS_TOKEN_TTL') || '30d') as any },
+        signOptions: { expiresIn: (configService.get<string>('ACCESS_TOKEN_TTL') || '3650d') as any },
       }),
       inject: [ConfigService],
     }),
