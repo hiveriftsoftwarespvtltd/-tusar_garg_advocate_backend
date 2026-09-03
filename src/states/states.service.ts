@@ -212,8 +212,6 @@ export class StatesService implements OnModuleInit {
       if (!exists) {
         await this.stateModel.create(stateObj);
         console.log(`Seeded state: ${stateObj.name}`);
-      } else {
-        await this.stateModel.updateOne({ slug: stateObj.slug }, stateObj).exec();
       }
     }
   }
