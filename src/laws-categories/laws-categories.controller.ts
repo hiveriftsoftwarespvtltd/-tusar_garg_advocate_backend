@@ -3,7 +3,7 @@ import { LawsCategoriesService } from './laws-categories.service';
 
 @Controller('api/laws-categories')
 export class LawsCategoriesController {
-  constructor(private readonly service: LawsCategoriesService) {}
+  constructor(private readonly service: LawsCategoriesService) { }
 
   @Get()
   async getAll() {

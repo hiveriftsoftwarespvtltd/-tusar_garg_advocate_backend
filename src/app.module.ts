@@ -21,6 +21,7 @@ import { JobsModule } from './jobs/jobs.module';
 import { CollegesModule } from './colleges/colleges.module';
 import { JudiciaryModule } from './judiciary/judiciary.module';
 import { ResourcesModule } from './resources/resources.module';
+import { ContactsModule } from './contacts/contacts.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { ResourcesModule } from './resources/resources.module';
     CollegesModule,
     JudiciaryModule,
     ResourcesModule,
+    ContactsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
