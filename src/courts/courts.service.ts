@@ -11,7 +11,7 @@ export class CourtsService implements OnModuleInit {
     @InjectModel(Court.name) private courtModel: Model<CourtDocument>,
     @InjectModel(State.name) private stateModel: Model<StateDocument>,
     @InjectModel(Judgment.name) private judgmentModel: Model<JudgmentDocument>
-  ) {}
+  ) { }
 
   async onModuleInit() {
     const states = await this.stateModel.find().exec();
@@ -620,31 +620,75 @@ export class CourtsService implements OnModuleInit {
     }
   }
 
+  private courtsCache: any[] | null = null;
+  private highCourtsCache: any[] | null = null;
+
   async findAll() {
-    const courts = await this.courtModel.find().populate('stateId').exec();
-    return courts.map(c => {
-      const obj = c.toObject();
-      return { ...obj, state: obj.stateId };
-    });
+    if (this.courtsCache) {
+      return this.courtsCache;
+    }
+    const courts = await this.courtModel
+      .find({}, 'name slug courtType city jurisdiction description image featured status stateId officialWebsite caseStatusUrl causeListUrl judgmentsUrl')
+      .populate('stateId', 'name slug code image status')
+      .lean()
+      .exec();
+    this.courtsCache = courts.map((c: any) => ({
+      ...c,
+      state: c.stateId
+    }));
+    return this.courtsCache;
+  }
+
+  async findHighCourts() {
+    if (this.highCourtsCache) {
+      return this.highCourtsCache;
+    }
+    const courts = await this.courtModel
+      .find({ courtType: { $regex: /high court/i } })
+      .populate('stateId', 'name slug code image status')
+      .lean()
+      .exec();
+    this.highCourtsCache = courts.map((c: any) => ({
+      ...c,
+      state: c.stateId
+    }));
+    return this.highCourtsCache;
   }
 
   async findPublishedByStateId(stateId: string) {
-    const allCourts = await this.courtModel.find({ status: 'PUBLISHED' }).sort({ displayOrder: 1 }).exec();
-    return allCourts.filter(c => c.stateId && c.stateId.toString() === stateId.toString());
+    return await this.courtModel.find({ stateId, status: 'PUBLISHED' }).sort({ displayOrder: 1 }).lean().exec();
   }
 
   async findBySlug(stateId: string, slug: string) {
-    const court = await this.courtModel.findOne({ slug, status: 'PUBLISHED' }).exec();
-    if (!court) return null;
-    
-    if (court.stateId.toString() !== stateId.toString()) {
-      return null;
+    this.courtsCache = null;
+    let court = await this.courtModel.findOne({ slug, status: 'PUBLISHED' }).exec();
+
+    if (!court && stateId) {
+      court = await this.courtModel.findOne({ stateId, slug, status: 'PUBLISHED' }).exec();
     }
+
+    if (!court && stateId) {
+      const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const stateCourts = await this.courtModel.find({ stateId, status: 'PUBLISHED' }).exec();
+      court = stateCourts.find(c => {
+        const cSlug = (c.slug || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const cName = (c.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const cCity = (c.city || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        return cSlug === cleanSlug ||
+               cName === cleanSlug ||
+               cSlug.includes(cleanSlug) ||
+               cleanSlug.includes(cSlug) ||
+               cCity === cleanSlug ||
+               cName.includes(cleanSlug);
+      }) || null;
+    }
+
+    if (!court) return null;
 
     const judgments = await this.judgmentModel.find({ courtId: court._id }).sort({ date: -1 }).exec();
 
-    const relatedCourts = await this.courtModel.find({ 
-      stateId, 
+    const relatedCourts = await this.courtModel.find({
+      stateId: court.stateId,
       _id: { $ne: court._id },
       status: 'PUBLISHED'
     }).limit(5).exec();
@@ -657,12 +701,27 @@ export class CourtsService implements OnModuleInit {
   }
 
   async update(id: string, updateData: any) {
+    this.courtsCache = null;
+    this.highCourtsCache = null;
     return this.courtModel.findByIdAndUpdate(id, updateData, { new: true }).exec();
+  }
+
+  async create(createData: any) {
+    this.courtsCache = null;
+    this.highCourtsCache = null;
+    const newCourt = new this.courtModel(createData);
+    return newCourt.save();
+  }
+
+  async delete(id: string) {
+    this.courtsCache = null;
+    this.highCourtsCache = null;
+    return this.courtModel.findByIdAndDelete(id).exec();
   }
 
   async findAllJudgments() {
     let judgments = await this.judgmentModel.find().populate('courtId', 'name').sort({ date: -1 }).exec();
-    
+
     if (!judgments || judgments.length === 0) {
       const court = await this.courtModel.findOne().exec();
       if (court) {
@@ -767,14 +826,5 @@ export class CourtsService implements OnModuleInit {
 
   async deleteJudgment(id: string) {
     return this.judgmentModel.findByIdAndDelete(id).exec();
-  }
-
-  async create(createData: any) {
-    const newCourt = new this.courtModel(createData);
-    return newCourt.save();
-  }
-
-  async delete(id: string) {
-    return this.courtModel.findByIdAndDelete(id).exec();
   }
 }

@@ -217,15 +217,15 @@ export class StatesService implements OnModuleInit {
   }
 
   async findAll() {
-    return this.stateModel.find().sort({ displayOrder: 1 }).exec();
+    return this.stateModel.find().sort({ displayOrder: 1 }).lean().exec();
   }
 
   async findPublished() {
-    return this.stateModel.find({ status: 'PUBLISHED' }).sort({ displayOrder: 1 }).exec();
+    return this.stateModel.find({ status: 'PUBLISHED' }).sort({ displayOrder: 1 }).lean().exec();
   }
 
   async findBySlug(slug: string) {
-    return this.stateModel.findOne({ slug }).exec();
+    return this.stateModel.findOne({ slug }).lean().exec();
   }
 
   async create(createData: any) {

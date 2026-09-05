@@ -7,11 +7,16 @@ export class CourtsController {
   constructor(
     private readonly courtsService: CourtsService,
     private readonly statesService: StatesService
-  ) {}
+  ) { }
 
   @Get()
   async getAllCourts() {
     return this.courtsService.findAll();
+  }
+
+  @Get('high-courts')
+  async getHighCourts() {
+    return this.courtsService.findHighCourts();
   }
 
   @Get('state/:stateSlug')
@@ -52,7 +57,7 @@ export class CourtsController {
   ): Promise<any> {
     const state = await this.statesService.findBySlug(stateSlug);
     if (!state) throw new NotFoundException('State not found');
-    
+
     console.log(`Getting court details for stateId: ${state._id}, courtSlug: ${courtSlug}`);
     const court = await this.courtsService.findBySlug(state._id.toString(), courtSlug);
     if (!court) {
@@ -63,7 +68,7 @@ export class CourtsController {
     // Frontend expects courtDataRaw.state.name and courtDataRaw.state.slug
     const courtObj = (court as any).toObject ? (court as any).toObject() : court;
     const stateObj = (state as any).toObject ? (state as any).toObject() : state;
-    
+
     return {
       ...courtObj,
       state: stateObj
