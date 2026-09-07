@@ -629,7 +629,7 @@ export class CourtsService implements OnModuleInit {
     }
     const courts = await this.courtModel
       .find({}, 'name slug courtType city jurisdiction description image featured status stateId officialWebsite caseStatusUrl causeListUrl judgmentsUrl')
-      .populate('stateId', 'name slug code image status')
+      .populate('stateId', 'name slug code status')
       .lean()
       .exec();
     this.courtsCache = courts.map((c: any) => ({
@@ -645,7 +645,7 @@ export class CourtsService implements OnModuleInit {
     }
     const courts = await this.courtModel
       .find({ courtType: { $regex: /high court/i } })
-      .populate('stateId', 'name slug code image status')
+      .populate('stateId', 'name slug code status')
       .lean()
       .exec();
     this.highCourtsCache = courts.map((c: any) => ({
@@ -660,7 +660,6 @@ export class CourtsService implements OnModuleInit {
   }
 
   async findBySlug(stateId: string, slug: string) {
-    this.courtsCache = null;
     let court = await this.courtModel.findOne({ slug, status: 'PUBLISHED' }).exec();
 
     if (!court && stateId) {
@@ -675,11 +674,11 @@ export class CourtsService implements OnModuleInit {
         const cName = (c.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
         const cCity = (c.city || '').toLowerCase().replace(/[^a-z0-9]/g, '');
         return cSlug === cleanSlug ||
-               cName === cleanSlug ||
-               cSlug.includes(cleanSlug) ||
-               cleanSlug.includes(cSlug) ||
-               cCity === cleanSlug ||
-               cName.includes(cleanSlug);
+          cName === cleanSlug ||
+          cSlug.includes(cleanSlug) ||
+          cleanSlug.includes(cSlug) ||
+          cCity === cleanSlug ||
+          cName.includes(cleanSlug);
       }) || null;
     }
 

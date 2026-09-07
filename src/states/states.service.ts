@@ -216,12 +216,19 @@ export class StatesService implements OnModuleInit {
     }
   }
 
+  private statesCache: any[] | null = null;
+  private publishedStatesCache: any[] | null = null;
+
   async findAll() {
-    return this.stateModel.find().sort({ displayOrder: 1 }).lean().exec();
+    if (this.statesCache) return this.statesCache;
+    this.statesCache = await this.stateModel.find().sort({ displayOrder: 1 }).lean().exec();
+    return this.statesCache;
   }
 
   async findPublished() {
-    return this.stateModel.find({ status: 'PUBLISHED' }).sort({ displayOrder: 1 }).lean().exec();
+    if (this.publishedStatesCache) return this.publishedStatesCache;
+    this.publishedStatesCache = await this.stateModel.find({ status: 'PUBLISHED' }).sort({ displayOrder: 1 }).lean().exec();
+    return this.publishedStatesCache;
   }
 
   async findBySlug(slug: string) {
@@ -229,15 +236,21 @@ export class StatesService implements OnModuleInit {
   }
 
   async create(createData: any) {
+    this.statesCache = null;
+    this.publishedStatesCache = null;
     const newState = new this.stateModel(createData);
     return newState.save();
   }
 
   async update(id: string, updateData: any) {
+    this.statesCache = null;
+    this.publishedStatesCache = null;
     return this.stateModel.findByIdAndUpdate(id, updateData, { new: true }).exec();
   }
 
   async delete(id: string) {
+    this.statesCache = null;
+    this.publishedStatesCache = null;
     return this.stateModel.findByIdAndDelete(id).exec();
   }
 }
