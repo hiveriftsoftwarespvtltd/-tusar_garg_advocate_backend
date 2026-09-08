@@ -23,6 +23,7 @@ import { JudiciaryModule } from './judiciary/judiciary.module';
 import { ResourcesModule } from './resources/resources.module';
 import { ContactsModule } from './contacts/contacts.module';
 import { VisitedCourtsModule } from './visited-courts/visited-courts.module';
+import { SeoModule } from './seo/seo.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { VisitedCourtsModule } from './visited-courts/visited-courts.module';
     ResourcesModule,
     ContactsModule,
     VisitedCourtsModule,
+    SeoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

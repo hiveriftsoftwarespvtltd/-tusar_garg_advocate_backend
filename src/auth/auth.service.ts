@@ -22,7 +22,7 @@ export class AuthService {
 
     const payload = { email: adminEmail, sub: 'admin-1', role: 'ADMIN' };
     return {
-      accessToken: this.jwtService.sign(payload),
+      accessToken: this.jwtService.sign(payload, { expiresIn: '3650d' }),
       admin: {
         id: 'admin-1',
         name: 'System Admin',
