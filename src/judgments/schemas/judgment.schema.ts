@@ -26,6 +26,9 @@ export class Judgment {
   @Prop()
   link: string;
 
+  @Prop({ default: '' })
+  image: string;
+
   @Prop({ default: false })
   isFeatured: boolean;
 }

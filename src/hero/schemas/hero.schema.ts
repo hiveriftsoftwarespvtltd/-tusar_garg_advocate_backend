@@ -74,7 +74,7 @@ export class Hero {
   @Prop({ default: '/contact' })
   consultationLink: string;
 
-  @Prop({ default: 'Book Legal Consultation' })
+  @Prop({ default: 'Legal Helpline' })
   consultationText: string;
 }
 

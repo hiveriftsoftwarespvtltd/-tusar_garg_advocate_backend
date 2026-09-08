@@ -22,6 +22,7 @@ import { CollegesModule } from './colleges/colleges.module';
 import { JudiciaryModule } from './judiciary/judiciary.module';
 import { ResourcesModule } from './resources/resources.module';
 import { ContactsModule } from './contacts/contacts.module';
+import { VisitedCourtsModule } from './visited-courts/visited-courts.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { ContactsModule } from './contacts/contacts.module';
     JudiciaryModule,
     ResourcesModule,
     ContactsModule,
+    VisitedCourtsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

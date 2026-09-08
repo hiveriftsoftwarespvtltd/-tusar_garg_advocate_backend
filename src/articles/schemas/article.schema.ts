@@ -31,6 +31,15 @@ export class Article {
 
   @Prop({ default: true })
   isFeatured: boolean;
+
+  @Prop({ default: '' })
+  metaTitle: string;
+
+  @Prop({ default: '' })
+  metaDescription: string;
+
+  @Prop({ default: '' })
+  metaKeywords: string;
 }
 
 export const ArticleSchema = SchemaFactory.createForClass(Article);
