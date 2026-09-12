@@ -2,16 +2,32 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Article, ArticleDocument } from './schemas/article.schema';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
 export class ArticlesService {
+  private cache: any[] | null = null;
+  private cacheTime: number = 0;
+  private readonly CACHE_TTL = 300000; // 5 minutes cache
+
   constructor(
     @InjectModel(Article.name)
     private articleModel: Model<ArticleDocument>,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
+  clearCache() {
+    this.cache = null;
+    this.cacheTime = 0;
+  }
+
   async findAll() {
-    let list = await this.articleModel.find().sort({ createdAt: -1 }).exec();
+    const now = Date.now();
+    if (this.cache && (now - this.cacheTime < this.CACHE_TTL)) {
+      return this.cache;
+    }
+
+    let list = await this.articleModel.find().sort({ createdAt: -1 }).lean().exec();
     if (!list || list.length === 0) {
       const defaultArticles = [
         {
@@ -116,25 +132,57 @@ The Supreme Court Constitutional Bench in Hardeep Singh vs State of Punjab held 
         }
       ];
       await this.articleModel.insertMany(defaultArticles);
-      list = await this.articleModel.find().sort({ createdAt: -1 }).exec();
+      list = await this.articleModel.find().sort({ createdAt: -1 }).lean().exec();
     }
+    this.cache = list;
+    this.cacheTime = now;
     return list;
   }
 
   async findOne(id: string) {
-    return this.articleModel.findById(id).exec();
+    if (this.cache) {
+      const found = this.cache.find(a => String(a._id) === String(id));
+      if (found) return found;
+    }
+    return this.articleModel.findById(id).lean().exec();
   }
 
   async create(data: any) {
+    this.clearCache();
+    if (data.image && (data.image.startsWith('data:image/') || data.image.length > 2000)) {
+      try {
+        const uploadRes = await this.cloudinaryService.uploadBase64(
+          data.image,
+          'tushar_advocate/articles',
+        );
+        data.image = uploadRes.secure_url;
+      } catch (err: any) {
+        console.error('Cloudinary auto-upload failed in Article create:', err?.message);
+      }
+    }
     const newItem = new this.articleModel(data);
     return newItem.save();
   }
 
   async update(id: string, data: any) {
-    return this.articleModel.findByIdAndUpdate(id, data, { new: true }).exec();
+    this.clearCache();
+    if (data.image && (data.image.startsWith('data:image/') || data.image.length > 2000)) {
+      try {
+        const uploadRes = await this.cloudinaryService.uploadBase64(
+          data.image,
+          'tushar_advocate/articles',
+        );
+        data.image = uploadRes.secure_url;
+      } catch (err: any) {
+        console.error('Cloudinary auto-upload failed in Article update:', err?.message);
+      }
+    }
+    return this.articleModel.findByIdAndUpdate(id, data, { new: true }).lean().exec();
   }
 
   async delete(id: string) {
+    this.clearCache();
     return this.articleModel.findByIdAndDelete(id).exec();
   }
 }
+

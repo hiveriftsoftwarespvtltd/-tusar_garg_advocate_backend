@@ -24,6 +24,7 @@ import { ResourcesModule } from './resources/resources.module';
 import { ContactsModule } from './contacts/contacts.module';
 import { VisitedCourtsModule } from './visited-courts/visited-courts.module';
 import { SeoModule } from './seo/seo.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -53,8 +54,10 @@ import { SeoModule } from './seo/seo.module';
     ContactsModule,
     VisitedCourtsModule,
     SeoModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
+
   providers: [AppService],
 })
 export class AppModule {}

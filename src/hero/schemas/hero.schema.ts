@@ -74,7 +74,7 @@ export class Hero {
   @Prop({ default: '/contact' })
   consultationLink: string;
 
-  @Prop({ default: 'Legal Helpline' })
+  @Prop({ default: 'Legal Awareness Helpline' })
   consultationText: string;
 }
 
