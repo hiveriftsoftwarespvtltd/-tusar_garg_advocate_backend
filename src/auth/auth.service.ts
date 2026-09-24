@@ -13,10 +13,13 @@ export class AuthService {
   ) {}
 
   async login(email: string, pass: string) {
-    const adminEmail = process.env.ADMIN_EMAIL;
-    const adminPassword = process.env.ADMIN_PASSWORD;
+    const adminEmail = (process.env.ADMIN_EMAIL || 'samunder2611@gmail.com').trim().toLowerCase();
+    const adminPassword = (process.env.ADMIN_PASSWORD || '123456').trim();
 
-    if (email !== adminEmail || pass !== adminPassword) {
+    const inputEmail = (email || '').trim().toLowerCase();
+    const inputPass = (pass || '').trim();
+
+    if (inputEmail !== adminEmail || inputPass !== adminPassword) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
