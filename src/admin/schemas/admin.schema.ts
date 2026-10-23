@@ -14,11 +14,14 @@ export class Admin {
   @Prop({ required: true })
   passwordHash: string;
 
-  @Prop({ default: 'ADMIN' })
-  role: string;
+  @Prop({ default: 'SUB_ADMIN' })
+  role: string; // SUPER_ADMIN, SUB_ADMIN, EDITOR, MODERATOR
 
   @Prop({ default: 'ACTIVE' })
-  status: string;
+  status: string; // ACTIVE, INACTIVE
+
+  @Prop({ type: [String], default: [] })
+  permissions: string[]; // e.g. ['courts', 'judgments', 'articles', 'contacts', etc.]
 
   @Prop()
   lastLogin: Date;

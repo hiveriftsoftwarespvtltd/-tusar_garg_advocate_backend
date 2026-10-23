@@ -15,6 +15,11 @@ export class JudgmentsController {
     return this.courtsService.findAllJudgments();
   }
 
+  @Get(':id')
+  async getJudgmentById(@Param('id') id: string) {
+    return this.courtsService.findJudgmentById(id);
+  }
+
   @Post()
   async createJudgment(@Body() body: any) {
     return this.courtsService.createJudgment(body);

@@ -35,6 +35,11 @@ export class CourtsController {
     return this.courtsService.findAllJudgments();
   }
 
+  @Get('judgments/:id')
+  async getJudgmentById(@Param('id') id: string) {
+    return this.courtsService.findJudgmentById(id);
+  }
+
   @Post('judgments')
   async createJudgment(@Body() body: any) {
     return this.courtsService.createJudgment(body);

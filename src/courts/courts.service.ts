@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Court, CourtDocument } from './schemas/court.schema';
 import { State, StateDocument } from '../states/schemas/state.schema';
 import { Judgment, JudgmentDocument } from '../judgments/schemas/judgment.schema';
@@ -656,19 +656,32 @@ export class CourtsService implements OnModuleInit {
   }
 
   async findPublishedByStateId(stateId: string) {
-    return await this.courtModel.find({ stateId, status: 'PUBLISHED' }).sort({ displayOrder: 1 }).lean().exec();
+    const queryId = Types.ObjectId.isValid(stateId) ? new Types.ObjectId(stateId) : stateId;
+    return await this.courtModel.find({ 
+      stateId: { $in: [stateId, queryId] }, 
+      status: 'PUBLISHED' 
+    }).sort({ displayOrder: 1 }).lean().exec();
   }
 
   async findBySlug(stateId: string, slug: string) {
     let court = await this.courtModel.findOne({ slug, status: 'PUBLISHED' }).exec();
 
     if (!court && stateId) {
-      court = await this.courtModel.findOne({ stateId, slug, status: 'PUBLISHED' }).exec();
+      const queryId = Types.ObjectId.isValid(stateId) ? new Types.ObjectId(stateId) : stateId;
+      court = await this.courtModel.findOne({ 
+        stateId: { $in: [stateId, queryId] }, 
+        slug, 
+        status: 'PUBLISHED' 
+      }).exec();
     }
 
     if (!court && stateId) {
       const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const stateCourts = await this.courtModel.find({ stateId, status: 'PUBLISHED' }).exec();
+      const queryId = Types.ObjectId.isValid(stateId) ? new Types.ObjectId(stateId) : stateId;
+      const stateCourts = await this.courtModel.find({ 
+        stateId: { $in: [stateId, queryId] }, 
+        status: 'PUBLISHED' 
+      }).exec();
       court = stateCourts.find(c => {
         const cSlug = (c.slug || '').toLowerCase().replace(/[^a-z0-9]/g, '');
         const cName = (c.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -812,6 +825,10 @@ export class CourtsService implements OnModuleInit {
       }
     }
     return judgments;
+  }
+
+  async findJudgmentById(id: string) {
+    return this.judgmentModel.findById(id).populate('courtId', 'name courtType city stateId jurisdiction description').exec();
   }
 
   async createJudgment(data: any) {

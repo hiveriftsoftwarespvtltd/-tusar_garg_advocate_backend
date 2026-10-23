@@ -19,18 +19,65 @@ export class AuthService {
     const inputEmail = (email || '').trim().toLowerCase();
     const inputPass = (pass || '').trim();
 
-    if (inputEmail !== adminEmail || inputPass !== adminPassword) {
-      throw new UnauthorizedException('Invalid credentials');
+    // 1. Check Super Admin Master Credentials
+    if (inputEmail === adminEmail && inputPass === adminPassword) {
+      const payload = { email: adminEmail, sub: 'super-admin-1', role: 'SUPER_ADMIN' };
+      return {
+        accessToken: this.jwtService.sign(payload, { expiresIn: '3650d' }),
+        admin: {
+          id: 'super-admin-1',
+          name: 'Super Admin',
+          email: adminEmail,
+          role: 'SUPER_ADMIN',
+          permissions: ['ALL'],
+        }
+      };
     }
 
-    const payload = { email: adminEmail, sub: 'admin-1', role: 'ADMIN' };
+    // 2. Check Database Sub-Admins
+    const dbAdmin = await this.adminModel.findOne({ email: inputEmail });
+    if (!dbAdmin) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    if (dbAdmin.status === 'INACTIVE') {
+      throw new UnauthorizedException('This account has been deactivated. Please contact the administrator.');
+    }
+
+    let isMatch = false;
+    try {
+      isMatch = await bcrypt.compare(inputPass, dbAdmin.passwordHash);
+    } catch (e) {
+      isMatch = false;
+    }
+
+    // Fallback comparison if plain string was stored
+    if (!isMatch && dbAdmin.passwordHash === inputPass) {
+      isMatch = true;
+    }
+
+    if (!isMatch) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    // Update lastLogin timestamp
+    dbAdmin.lastLogin = new Date();
+    await dbAdmin.save();
+
+    const payload = { 
+      email: dbAdmin.email, 
+      sub: dbAdmin._id.toString(), 
+      role: dbAdmin.role || 'SUB_ADMIN' 
+    };
+
     return {
       accessToken: this.jwtService.sign(payload, { expiresIn: '3650d' }),
       admin: {
-        id: 'admin-1',
-        name: 'System Admin',
-        email: adminEmail,
-        role: 'ADMIN',
+        id: dbAdmin._id,
+        name: dbAdmin.name,
+        email: dbAdmin.email,
+        role: dbAdmin.role || 'SUB_ADMIN',
+        permissions: dbAdmin.permissions || [],
       }
     };
   }
